@@ -18,4 +18,39 @@
     - { role: users, tags: ['users'] }
     - { role: nginx, tags: ['nginx'] }
     - { role: jenkins, tags: ['jenkins'] }
-    - { role: postgresql, tags: ['postgresql'] }
+
+
+- name: deploy postgres roles on ubuntu hosts
+  hosts:
+    - localhost
+  become: yes
+  user: root
+  ignore_errors: yes
+  vars:
+    postgresql_version: 9.5
+    postgresql_user: postgres
+    postgresql_group: postgres
+    postgresql_hba:
+      - type: host
+        database: goodfood
+        user: all
+        address: 0.0.0.0/0
+        method: md5
+    postgresql_users:
+      - name: system
+        password: isdbihq15278shk
+        attributes: SUPERUSER
+    postgresql_databases:
+      - name: goodfood
+        owner: system
+    postgresql_tablespaces:
+      - name: goodfood
+        owner: system
+        location: /var/lib/postgresql/tablespaces/goodfood
+        defaultTablespace: yes
+      - name: goodfood
+        owner: system
+        location: /var/lib/postgresql/tablespaces/goodfood
+    postgresql_schemas: []
+    roles:
+      - { role: postgresql, tags: [ 'postgresql' ] }
