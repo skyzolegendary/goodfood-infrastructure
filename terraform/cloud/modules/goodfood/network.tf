@@ -9,3 +9,7 @@ resource "google_compute_subnetwork" "public-subnet" {
   network = google_compute_network.vpc.name
   region = var.region
 }
+resource "google_compute_address" "public" {
+  name = "public"
+  region = var.region
+}

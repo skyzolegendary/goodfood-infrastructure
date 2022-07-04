@@ -2,7 +2,7 @@ resource "google_compute_instance" "goodfoodapi" {
   name         = "goodfoodapi"
   machine_type = "e2-standard-2"
   zone         = var.zone
-  tags         = ["API"]
+  tags         = ["api"]
   metadata = {
     enable-oslogin = "TRUE"
   }
@@ -17,6 +17,10 @@ resource "google_compute_instance" "goodfoodapi" {
 
   network_interface {
     network    = google_compute_network.vpc.name
+    access_config {
+      nat_ip = google_compute_address.public.address
+
+    }
     subnetwork = google_compute_subnetwork.public-subnet.name
   }
 }

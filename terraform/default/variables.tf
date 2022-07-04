@@ -3,7 +3,7 @@ variable "ssh_key" {
 }
 
 variable "machine" {
-  default= "ubuntu-2004-focal-v20220701"
+  default= "ubuntu-os-cloud/ubuntu-2004-lts"
 }
 
 variable "zone" {
