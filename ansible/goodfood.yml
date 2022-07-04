@@ -1,0 +1,21 @@
+---
+- name: deploy common roles on global ubuntu hosts
+  hosts:
+    - localhost
+  become: yes
+  user: root
+  ignore_errors: yes
+  vars:
+    telegraf_organization: "goodfood"
+    telegraf_bucket: "goodfood.prod"
+    tags:
+      - name: env
+        value: goodfood.prod
+      - name: group
+        value: dev
+  roles:
+    - { role: common, tags: ['common'] }
+    - { role: users, tags: ['users'] }
+    - { role: nginx, tags: ['nginx'] }
+    - { role: jenkins, tags: ['jenkins'] }
+    - { role: postgresql, tags: ['postgresql'] }
