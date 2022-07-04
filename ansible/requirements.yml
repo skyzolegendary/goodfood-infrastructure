@@ -1,0 +1,5 @@
+---
+- src: git@github.com:skyzolegendary/role-ansible-postgresql.git
+  scm: git
+  version: master
+  name: postgresql
