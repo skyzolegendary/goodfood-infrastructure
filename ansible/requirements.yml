@@ -3,3 +3,8 @@
   scm: git
   version: master
   name: postgresql
+
+- src: git@bitbucket.org:parkeon-ondemand/afc-ansible-role-python-psycopg2.git
+  scm: git
+  version: master
+  name: python-psycopg2
