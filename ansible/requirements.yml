@@ -4,7 +4,7 @@
   version: master
   name: postgresql
 
-- src: git@bitbucket.org:skyzolegendary/role-ansible-psycopg2.git
+- src: git@github.com:skyzolegendary/role-ansible-psycopg2.git
   scm: git
   version: master
   name: python-psycopg2
