@@ -1,0 +1,19 @@
+---
+- name: create node directory
+  file:
+    name: "{{jenkins_home}}/nodes/{{item.name}}"
+    state: directory
+    mode: 0755
+    owner: "{{jenkins_user}}"
+    group: "{{jenkins_group}}"
+  with_items: "{{jenkins_nodes}}"
+
+- name: create node configuration
+  template:
+    src: node/config.xml.j2
+    dest: "{{jenkins_home}}/nodes/{{item.name}}/config.xml"
+    mode: 0644
+    owner: "{{jenkins_user}}"
+    group: "{{jenkins_group}}"
+  with_items: "{{jenkins_nodes}}"
+  notify: restart jenkins

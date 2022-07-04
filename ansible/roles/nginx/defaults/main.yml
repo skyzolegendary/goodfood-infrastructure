@@ -1,0 +1,5 @@
+---
+nginx_version: 1.20.*
+nginx_user: www-data
+nginx_group: www-data
+nginx_path: /etc/nginx

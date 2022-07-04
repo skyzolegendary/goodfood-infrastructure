@@ -1,0 +1,10 @@
+---
+jenkins_home: /var/lib/jenkins
+jenkins_user: jenkins
+jenkins_group: jenkins
+jenkins_prefix: /
+jenkins_admin_password: "{{jenkins_home}}/secrets/initialAdminPassword"
+jenkins_java_args: []
+jenkins_nodes: []
+jenkins_jobs: []
+jenkins_plugins: []

@@ -1,0 +1,23 @@
+# .bash_profile
+
+# Get the aliases and functions
+if [ -f ~/.bashrc ]; then
+	. ~/.bashrc
+fi
+
+# User specific environment and startup programs
+
+PATH=$PATH:$HOME/.local/bin:$HOME/bin
+
+
+
+export PATH
+export TMP=/tmp
+export PATH=$ORACLE_HOME/bin:$PATH
+export LD_LIBRARY_PATH=$ORACLE_HOME/lib:$LD_LIBRARY_PATH
+alias cdob='cd ORACLE_BASE'
+alias cdoh='cd ORACLE_HOME'
+alias tns='cd ORACLE_HOME/network/admin'
+alias envo='env | grep ORACLE'
+umask 022
+envo

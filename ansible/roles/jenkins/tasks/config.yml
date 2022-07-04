@@ -1,0 +1,12 @@
+---
+- name: create configuration
+  template:
+    src: "{{item}}.j2"
+    dest: "{{jenkins_home}}/{{item}}"
+    mode: 0644
+    owner: "{{jenkins_user}}"
+    group: "{{jenkins_group}}"
+  with_items:
+    - hudson.tasks.Shell.xml
+    - jenkins.model.JenkinsLocationConfiguration.xml
+  notify: restart jenkins

@@ -1,0 +1,30 @@
+---
+timezone: Europe/Paris
+
+ntp_servers:
+  - server time1.google.com;
+  - server time2.google.com;
+  - server time3.google.com;
+  - server time4.google.com;
+
+
+admin_users:
+  quentin.guyon:
+    ubuntu_groups: sudo
+    givenName: Quentin Guyon
+    mail: quentin.guyon@flowbird.group
+    ssh_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCsbMzP76VTBBZ4LyCxmFcEjLh0sWMdDPY0p+VVV1heG3x0KlZC5M/0gSInoVltnItrqkWZ2koMYAKyNaoINqzvTrEuunf2mJwPlZXvHDfZy6nnANcJtYq2+JJg7Y3arl9aq9EvZmJ6i7JK1MQn2HsS/g4wVGPx4SfWVfd/2OB5QW1CWx/3PKO5DcWv4wpcforSqB1gYpsV0G62z4Xo9EKtsM8b1eZaOlBwTOG++O9J+t2rQKxHtsSHd+Si53VlSTTPK5ms7jl82Hv0hWqctFxOijBVOiDw9gUuG24QniyUTUcvEMiuBiIhHUWOefOdHD+6I2C8ZGQJjpiU8AXvF0k6RG6Wnl/Sqn6MloI4c8vNeEqPaa/iOWCNyUVNiyBuyqHa5ZOcNDemiOY3mWKxFDLvtEiTsmFWKpVTPW2Juo3CpBMCTw5KDb0k1Wjgg4UtVCvNCUgCdMZsTQIa4cuUFefWKIkj+QNssq5CAnNwBMUSTJ9Sh8WtlWtMVLKEJ85EJ8/Srfl9AeWEn5PH1zVZ2j59EYsjPTLIKBph8jxSl7UdxQSVrwG8SyQb/xcOolro4rncT1XIyM2krR2UUqqC2xnRILqgGI/wElVN1RRbPfgLwMD/wsERCMOWf5WiIXTX7cdwMqhLv5fV4HM+Wl3Wmbs3vTNd0Jt2tpGLXWTMJZjcMQ== quentin.guyon@FR-BES-LPL15402"
+    ldap_groups: ['admin_users' ]
+
+
+users_skeleton:
+  shell: /bin/bash
+  groups: ~
+  # created with:
+  # python3 -c 'import crypt; print(crypt.crypt("Password", crypt.mksalt()))'
+  unixPassword: "$6$zwjhMkZby7Y6VNAZ$UqAdnHyWwIJIB.BGgR/C11Em.6W1oEOTtP9UgKZo9QVKjcssct8w4kzQ.ckboSNwiSNfYiboUwgD2hq0GwxdX."
+  state: present
+
+google_region: europe-west9
+ansible_python_interpreter: /usr/bin/python3
+#ansible_port: 2222

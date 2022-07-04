@@ -1,0 +1,54 @@
+---
+- name: setup repository key
+  apt_key:
+    url: https://pkg.jenkins.io/debian-stable/jenkins.io.key
+    state: present
+
+- name: setup repository
+  apt_repository:
+    repo: deb http://pkg.jenkins-ci.org/debian-stable binary/
+    filename: jenkins
+    state: present
+    update_cache: yes
+
+- name: install package
+  apt:
+    name: jenkins
+    state: present
+
+- name: setup defaults
+  template:
+    src: etc/default/jenkins.j2
+    dest: /etc/default/jenkins
+    mode: 0644
+    owner: root
+    group: root
+  register: jenkins_defaults
+
+- name: restart jenkins
+  service:
+    name: jenkins
+    state: restarted
+  when: jenkins_defaults is changed
+
+- name: wait for connection
+  uri:
+    url: "http://localhost:{{jenkins_port|default(8080)}}{{jenkins_prefix}}/login"
+  register: jenkins
+  until: ansible_check_mode or jenkins.status == 200
+  retries: 60
+  delay: 1
+
+- name: config
+  import_tasks: config.yml
+
+- name: credentials
+  import_tasks: credentials.yml
+
+- name: nodes
+  import_tasks: nodes.yml
+  tags: ['nodes']
+
+- name: jobs
+  import_tasks: jobs.yml
+  tags: ['jobs']

@@ -1,0 +1,278 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <displayName>{{item.name}}</displayName>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.buildblocker.BuildBlockerProperty plugin="build-blocker-plugin@1.7.3">
+      <useBuildBlocker>{% if item.build_blocker is defined %}true{% else %}false{% endif %}</useBuildBlocker>
+      <blockLevel>GLOBAL</blockLevel>
+      <scanQueueFor>DISABLED</scanQueueFor>
+      <blockingJobs>{{item.build_blocker|default()}}</blockingJobs>
+    </hudson.plugins.buildblocker.BuildBlockerProperty>
+{% if item.discard_builds_after is defined %}
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>{{item.discard_builds_after.days|default(-1)}}</daysToKeep>
+        <numToKeep>{{item.discard_builds_after.number|default(-1)}}</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+{% endif %}
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.28">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+{% if item.parameters is defined %}
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+{% for parameter in item.parameters %}
+{% if parameter.type == 'string' %}
+        <hudson.model.StringParameterDefinition>
+          <name>{{parameter.name}}</name>
+          <description>{{parameter.description|default()}}</description>
+          <defaultValue>{{parameter.default_value|default()}}</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+{% endif %}
+{% if parameter.type == 'choices' %}
+        <hudson.model.ChoiceParameterDefinition>
+          <name>{{parameter.name}}</name>
+          <description>{{parameter.description|default()}}</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+{% for choice in parameter.choices %}
+              <string>{{choice}}</string>
+{% endfor %}
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+{% endif %}
+{% endfor %}
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+{% endif %}
+  </properties>
+{% if item.git is defined %}
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@3.9.0">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>{{item.git.url}}</url>
+        <credentialsId>bitbucket-jenkins-ssh</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+{% if item.git.branches is defined %}
+    <branches>
+{% for branch in item.git.branches %}
+      <hudson.plugins.git.BranchSpec>
+        <name>{{branch|default('*')}}</name>
+      </hudson.plugins.git.BranchSpec>
+{% endfor %}
+    </branches>
+{% else %}
+    <branches/>
+{% endif %}
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+{% if item.git.extensions is defined %}
+    <extensions>
+{% for extension in item.git.extensions %}
+{% if extension.type == 'clean_before_checkout' %}
+      <hudson.plugins.git.extensions.impl.CleanBeforeCheckout/>
+{% endif %}
+{% endfor %}
+    </extensions>
+{% else %}
+    <extensions/>
+{% endif %}
+  </scm>
+{% else %}
+  <scm class="hudson.scm.NullSCM"/>
+{% endif %}
+{% if item.assigned_node is defined %}
+  <assignedNode>{{item.assigned_node}}</assignedNode>
+  <canRoam>false</canRoam>
+{% else %}
+  <canRoam>true</canRoam>
+{% endif %}
+  <disabled>{{item.disabled|default(false)|ternary('true','false')}}</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+{% if item.triggers is defined %}
+  <triggers>
+{% if item.triggers.timer is defined %}
+    <hudson.triggers.TimerTrigger>
+      <spec>{{item.triggers.timer}}</spec>
+    </hudson.triggers.TimerTrigger>
+{% endif %}
+{% if item.triggers.scm is defined%}
+    <hudson.triggers.SCMTrigger>
+      <spec>{{item.triggers.scm}}</spec>
+      <ignorePostCommitHooks>false</ignorePostCommitHooks>
+    </hudson.triggers.SCMTrigger>
+{% endif %}
+  </triggers>
+{% else %}
+  <triggers/>
+{% endif %}
+  <concurrentBuild>false</concurrentBuild>
+{% if item.builders is defined %}
+  <builders>
+{% for builder in item.builders %}
+{% if builder.type == 'sonar' %}
+    <hudson.plugins.sonar.SonarRunnerBuilder plugin="sonar@2.6">
+      <project></project>
+      <properties>{{builder.properties|default('')}}</properties>
+      <javaOpts></javaOpts>
+      <additionalArguments></additionalArguments>
+      <jdk>(Inherit From Job)</jdk>
+      <task></task>
+    </hudson.plugins.sonar.SonarRunnerBuilder>
+{% elif builder.type == 'shell' %}
+    <hudson.tasks.Shell>
+      <command>{{builder.command|e}}</command>
+    </hudson.tasks.Shell>
+{% endif %}
+{% endfor %}
+  </builders>
+{% else %}
+  <builders/>
+{% endif %}
+{% if item.publishers is defined %}
+  <publishers>
+{% for publisher in item.publishers %}
+{% if publisher.type == 'build_trigger' %}
+    <hudson.tasks.BuildTrigger>
+      <childProjects>{{publisher.child_projects}}</childProjects>
+      <threshold>
+        <name>SUCCESS</name>
+        <ordinal>0</ordinal>
+        <color>BLUE</color>
+        <completeBuild>true</completeBuild>
+      </threshold>
+    </hudson.tasks.BuildTrigger>
+{% endif %}
+{% if publisher.type == 'bitbucket' %}
+    <org.jenkinsci.plugins.bitbucket.BitbucketBuildStatusNotifier plugin="bitbucket-build-status-notifier@1.3.3">
+      <notifyStart>{{publisher.notify_start|default('true')}}</notifyStart>
+      <notifyFinish>{{publisher.notify_finish|default('true')}}</notifyFinish>
+      <overrideLatestBuild>{{publisher.override_latest_build|default('true')}}</overrideLatestBuild>
+      <credentialsId></credentialsId>
+    </org.jenkinsci.plugins.bitbucket.BitbucketBuildStatusNotifier>
+{% endif %}
+{% if publisher.type == 'hipchat' %}
+    <jenkins.plugins.hipchat.HipChatNotifier plugin="hipchat@2.1.1">
+      <credentialId>HipChat-API-Token</credentialId>
+      <room>{{publisher.room|default('')}}</room>
+      <notifications>
+        <jenkins.plugins.hipchat.model.NotificationConfig>
+          <notifyEnabled>true</notifyEnabled>
+          <textFormat>false</textFormat>
+          <notificationType>FAILURE</notificationType>
+          <color>RED</color>
+          <messageTemplate></messageTemplate>
+        </jenkins.plugins.hipchat.model.NotificationConfig>
+        <jenkins.plugins.hipchat.model.NotificationConfig>
+          <notifyEnabled>true</notifyEnabled>
+          <textFormat>false</textFormat>
+          <notificationType>BACK_TO_NORMAL</notificationType>
+          <color>GREEN</color>
+          <messageTemplate></messageTemplate>
+        </jenkins.plugins.hipchat.model.NotificationConfig>
+{% if publisher.start_job_message is defined %}
+        <startJobMessage>{{publisher.start_job_message}}</startJobMessage>
+{% endif %}
+{% if publisher.complete_job_message is defined %}
+        <completeJobMessage>{{publisher.complete_job_message}}</completeJobMessage>
+{% endif %}
+      </notifications>
+    </jenkins.plugins.hipchat.HipChatNotifier>
+{% endif %}
+{% if publisher.type == 'junit' %}
+    <hudson.tasks.junit.JUnitResultArchiver plugin="junit@1.24">
+      <testResults>{{publisher.test_results}}</testResults>
+      <keepLongStdio>false</keepLongStdio>
+      <healthScaleFactor>1.0</healthScaleFactor>
+      <allowEmptyResults>false</allowEmptyResults>
+    </hudson.tasks.junit.JUnitResultArchiver>
+{% endif %}
+{% if publisher.type == 'postbuildscript' %}
+    <org.jenkinsci.plugins.postbuildscript.PostBuildScript plugin="postbuildscript@2.7.0">
+      <config>
+        <genericScriptFiles/>
+        <groovyScriptFiles/>
+        <scriptFiles/>
+        <groovyScripts/>
+        <buildSteps>
+          <org.jenkinsci.plugins.postbuildscript.model.PostBuildStep>
+            <results/>
+            <role>BOTH</role>
+            <executeOn>BOTH</executeOn>
+            <buildSteps>
+              <hudson.tasks.Shell>
+                <command>{{ publisher.command}}</command>
+              </hudson.tasks.Shell>
+            </buildSteps>
+          </org.jenkinsci.plugins.postbuildscript.model.PostBuildStep>
+        </buildSteps>
+        <markBuildUnstable>{{publisher.mark_build_unstable|default('false')}}</markBuildUnstable>
+      </config>
+      <buildSteps>
+        <hudson.tasks.Shell reference="../../config/buildSteps/org.jenkinsci.plugins.postbuildscript.model.PostBuildStep/buildSteps/hudson.tasks.Shell"/>
+      </buildSteps>
+      <scriptOnlyIfSuccess>false</scriptOnlyIfSuccess>
+      <scriptOnlyIfFailure>false</scriptOnlyIfFailure>
+      <markBuildUnstable>true</markBuildUnstable>
+    </org.jenkinsci.plugins.postbuildscript.PostBuildScript>
+{% endif %}
+{% if publisher.type == 'archive' %}
+    <hudson.tasks.ArtifactArchiver>
+      <artifacts>{{ publisher.artifacts }}</artifacts>
+      <allowEmptyArchive>{{ publisher.allow_empty | default(false) | ternary('true', 'false') }}</allowEmptyArchive>
+      <onlyIfSuccessful>false</onlyIfSuccessful>
+      <fingerprint>false</fingerprint>
+      <defaultExcludes>true</defaultExcludes>
+      <caseSensitive>true</caseSensitive>
+    </hudson.tasks.ArtifactArchiver>
+{% endif %}
+{% endfor %}
+  </publishers>
+{% else %}
+  <publishers/>
+{% endif %}
+{% if item.build_wrappers is defined %}
+  <buildWrappers>
+{% if 'ansicolor' in item.build_wrappers %}
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.5.2">
+      <colorMapName>xterm</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+{% endif %}
+{% if 'credentials_binding' in item.build_wrappers %}
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.16">
+      <bindings>
+{% for binding in item.build_wrappers.credentials_binding %}
+{% if binding.type == 'UsernamePassword' %}
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordBinding>
+          <credentialsId>{{ binding.credentials_id }}</credentialsId>
+          <variable>{{ binding.variable }}</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordBinding>
+{% endif %}
+{% if binding.type == 'UsernamePasswordMulti' %}
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>{{ binding.credentials_id }}</credentialsId>
+          <usernameVariable>{{ binding.username_variable }}</usernameVariable>
+          <passwordVariable>{{ binding.password_variable }}</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+{% endif %}
+{% endfor %}
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+{% endif %}
+  </buildWrappers>
+{% else %}
+  <buildWrappers/>
+{% endif %}
+</project>

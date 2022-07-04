@@ -1,0 +1,9 @@
+---
+- name: install plugin(s)
+  jenkins_plugin:
+    name: "{{item}}"
+    jenkins:
+      url: "http://localhost:{{jenkins_port|default(8080)}}{{jenkins_prefix}}"
+      username: admin
+      password_file: "{{jenkins_admin_password}}"
+  with_items: "{{jenkins_plugins}}"

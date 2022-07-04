@@ -1,0 +1,23 @@
+---
+- name: create job directory
+  file:
+    name: "{{jenkins_home}}/jobs/{{item.id|default(item.name)}}"
+    state: directory
+    mode: 0755
+    owner: "{{jenkins_user}}"
+    group: "{{jenkins_group}}"
+  with_items: "{{jenkins_jobs}}"
+  loop_control:
+    label: "{{item.id|default(item.name)}}"
+
+- name: create job configuration
+  template:
+    src: "jobs/{{item.template|default('default')}}/config.xml.j2"
+    dest: "{{jenkins_home}}/jobs/{{item.id|default(item.name)}}/config.xml"
+    mode: 0644
+    owner: "{{jenkins_user}}"
+    group: "{{jenkins_group}}"
+  with_items: "{{jenkins_jobs}}"
+  loop_control:
+    label: "{{item.id|default(item.name)}}"
+  notify: restart jenkins

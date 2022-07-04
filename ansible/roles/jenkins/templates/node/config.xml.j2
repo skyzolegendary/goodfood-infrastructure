@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<slave>
+  <name>{{item.name}}</name>
+  <description>{{item.description|default('')}}</description>
+  <remoteFS>{{item.remote_fs|default('/var/lib/jenkins')}}</remoteFS>
+  <numExecutors>{{item.executors|default(2)}}</numExecutors>
+  <mode>{{item.mode|default('NORMAL')}}</mode>
+  <retentionStrategy class="hudson.slaves.RetentionStrategy$Always"/>
+  <launcher class="hudson.plugins.sshslaves.SSHLauncher" plugin="ssh-slaves@1.26">
+    <host>{{item.launcher.host}}</host>
+    <port>{{item.launcher.port|default(22)}}</port>
+    <credentialsId>{{item.launcher.credentials_id|default('')}}</credentialsId>
+    <maxNumRetries>0</maxNumRetries>
+    <retryWaitTime>0</retryWaitTime>
+    <sshHostKeyVerificationStrategy class="hudson.plugins.sshslaves.verifiers.NonVerifyingKeyVerificationStrategy"/>
+  </launcher>
+  <label>{{item.label|default('')}}</label>
+{% if 'properties' in item %}
+  <nodeProperties>
+{% if 'environment_variables' in item.properties %}
+    <hudson.slaves.EnvironmentVariablesNodeProperty>
+      <envVars serialization="custom">
+        <unserializable-parents/>
+        <tree-map>
+          <default>
+            <comparator class="hudson.util.CaseInsensitiveComparator"/>
+          </default>
+          <int>{{item.properties.environment_variables|length}}</int>
+{% for key,value in item.properties.environment_variables.iteritems() %}
+          <string>{{key}}</string>
+          <string>{{value}}</string>
+{% endfor %}
+        </tree-map>
+      </envVars>
+    </hudson.slaves.EnvironmentVariablesNodeProperty>
+{% endif %}
+  </nodeProperties>
+{% else %}
+  <nodeProperties/>
+{% endif %}
+</slave>

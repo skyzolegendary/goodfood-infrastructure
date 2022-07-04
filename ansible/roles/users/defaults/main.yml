@@ -1,0 +1,8 @@
+---
+skeleton:
+  shell: /bin/bash
+  groups: ~
+  password: '!'
+  state: present
+users: []
+keys: []
